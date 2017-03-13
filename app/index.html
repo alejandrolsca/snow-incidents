@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>SNOW Incidents Dashboard Beta</title>
+<link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+<link href="../css/index.css" rel='stylesheet' type='text/css'>
+<link href="../bower_components/kendo-ui-core/styles/kendo.common.min.css" rel='stylesheet' type='text/css'>
+<link href="../bower_components/kendo-ui-core/styles/kendo.black.min.css" rel='stylesheet' type='text/css'>
+<link href="../bower_components/animate.css/animate.min.css" rel='stylesheet' type='text/css'>
+<link href="../bower_components/font-awesome/css/font-awesome.min.css" rel='stylesheet' type='text/css'>
+
+<!-- uncomment the next line here and in xlsxworker.js for encoding support -->
+<!--<script src="bower_components/dist/cpexcel.js"></script>-->
+<script src="../bower_components/js-xlsx/shim.js"></script>
+<script src="../bower_components/js-xlsx//dist/xlsx.full.min.js"></script>
+<script src="../bower_components/jquery/dist/jquery.js"></script>
+<script src="../bower_components/angular/angular.js"></script>
+<script src="../bower_components/kendo-ui-core/js/kendo.ui.core.min.js"></script>
+<script src="../bower_components/angular-filter/dist/angular-filter.js"></script>
+<script src="../bower_components/angular-google-chart/ng-google-chart.js"></script>
+<script src="../bower_components/angular-utils-pagination/dirPagination.js"></script>
+<script src="snow-incidents.js"></script>
+<script>
+var injector;
+angular.element(document).ready(function() {
+    injector = angular.bootstrap(document, ['snow']);
+});
+</script>
+</head>
+<body ng-controller="SnowCtrl">
+<div id="page-wrapper">
+<header>
+   <h4>SNOW Incidents Dashboard<sup>BETA</sup></h4>
+    <p ng-hide="dataLoaded">
+        <a class="button" ng-click="openWindow()">SNOW Tickets</a>
+        <a class="button" ng-click="togglePanel()">{{panelTitle}}</a>
+    </p>
+</header>
+<div id="loader" ng-if="loader"><div class="preloader"></div>loading...</div>
+<div id="drop" ng-hide="hidePanel">Please Drop the SNOW XLS, XLSX, XLSM or XLSB file here to see the Magic!</div>
+<p class="center"><img ng-hide="!dataLoaded" src="images/snow.jpg" /></p>  
+<div ng-hide="dataLoaded" ng-hide="dataLoaded" class="widget animated fadeIn">
+    <h4>Filters</h4>
+    Application
+    <select ng-model="filter['Application (from SN)']" ng-change="update()">
+        <option value="*">All</option>
+        <option ng-repeat="item in business_full | orderBy: 'key'">{{item.key}}</option>
+    </select>
+    Priority
+    <select ng-model="filter['Priority (from SN)']" ng-change="update()">
+        <option value="*">All</option>
+        <option ng-repeat="item in severities_full | orderBy: 'key'">{{item.key}}</option>
+    </select>
+    State
+    <select ng-model="filter['State']" ng-change="update()">
+        <option value="*">All</option>
+        <option ng-repeat="item in states_full | orderBy: 'key'">{{item.key}}</option>
+    </select>
+    Date Filter <input type="checkbox" ng-model="dateFilter" ng-change="update()"/><br/>
+    <table>
+        <tr>
+            <td>
+                From<br/>
+                <input kendo-date-picker k-ng-model="dateRange['start']" k-options="datePickerConfig" k-on-change="update()"/>
+            <td>
+                To<br/>
+                <input kendo-date-picker k-ng-model="dateRange['end']" k-options="datePickerConfig" k-on-change="update()"/>
+            </td>
+        </tr>
+    </table>
+</div>
+<div ng-hide="dataLoaded" class="widget animated fadeIn">
+    <h4>Summary</h4>
+    <table class="summary-tbl">
+        <tr>
+            <th colspan="2">Tickets</th>
+        </tr>
+        <tr>
+            <th>Priority</th>
+            <th>State</th>
+        </tr>
+        <tr>
+            <td><ul><li ng-repeat="item in severities | orderBy: 'key'">{{item.key}} - {{item.value}}</li></ul></td>
+            <td><ul><li ng-repeat="item in states | orderBy: 'key'">{{item.key}} - {{item.value}}</li></ul></td>
+        </tr>
+    </table>
+</div>
+<div ng-hide="dataLoaded" google-chart chart="severitiesChart" class="widget animated fadeIn"></div>
+<div ng-hide="dataLoaded" google-chart chart="ageClassChart" class="widget animated fadeIn"></div>
+<div ng-hide="dataLoaded" google-chart chart="statesChart" class="widget animated fadeIn"></div>
+<div ng-hide="dataLoaded" google-chart chart="topUsersChart" class="widget animated fadeIn"></div>
+<div ng-hide="dataLoaded" google-chart chart="ticketsByMonthChart" class="widget animated fadeIn"></div>
+<div ng-hide="dataLoaded" google-chart chart="ticketsByApplicationChart" class="widget animated fadeIn"></div>
+<div ng-hide="dataLoaded" google-chart chart="closedBacklogNewChart" class="widget animated fadeIn"></div>
+<div ng-hide="dataLoaded" google-chart chart="geoChart" class="widget animated fadeIn"></div> 
+
+<div kendo-window="window" k-visible="false" k-options="windowOptions">
+    <dir-pagination-controls direction-links="true" boundary-links="true" template-url="../bower_components/angular-utils-pagination/dirPagination.tpl.html"></dir-pagination-controls>
+    <table id="data" ng-hide="dataLoaded">
+        <thead>
+            <tr>
+                <th ng-repeat="th in ths" ng-show="th">{{th}}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr dir-paginate="tr in filteredData | itemsPerPage: 50">
+                <td ng-repeat="td in ths">{{tr[td]}}</td>
+            </tr>
+        </tbody>
+        <tfoot>
+        
+        </tfoot>
+    </table>
+</div>
+<footer>
+          <p class="center">Developed by <a href="mailto:gaspar.sanchez@astrazeneca.com">Alejandro Sanchez Betancourt</a><br/> 
+              &copy; Copyright 2017 AstraZeneca. All rights reserved.<br/>
+              Built with<br/>
+              <img class="angular" src="images/angularjs.png"/>
+          </p>
+</footer>
+</div>
+<script src="snow-xlsx.js"></script>
+</body>
+</html>

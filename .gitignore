@@ -45,3 +45,11 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Custom Folders
+bower_components/
+node_modules/
+npm-debug.log
+test/unit/coverage
+test/e2e/reports
+selenium-debug.log

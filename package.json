@@ -1,0 +1,19 @@
+{
+  "name": "snow-incidents",
+  "version": "1.0.0",
+  "description": "gulp test",
+  "main": "app/snow-incidents.js",
+  "scripts": {
+    "server": "node server.js"
+  },
+  "author": "Alejandro Sanchez Betancourt",
+  "license": "MIT",
+  "devDependencies": {
+    "express": "^4.8.7",
+    "gulp": "^3.8.7",
+    "gulp-concat": "^2.3.4",
+    "gulp-jshint": "^1.8.4",
+    "gulp-rename": "^1.2.0",
+    "gulp-uglify": "^0.3.2"
+  }
+}
